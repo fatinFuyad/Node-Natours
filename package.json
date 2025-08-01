@@ -4,12 +4,21 @@
   "description": "Learning for nodejs, express and mongoDB. The natours application.",
   "main": "app.js",
   "scripts": {
-    "start": "nodemon server.js"
+    "start": "nodemon server.js",
+    "build": "Set NODE_ENV=production && nodemon server.js"
   },
   "author": "fatin fuyad",
   "license": "ISC",
   "dependencies": {
+    "dotenv": "^16.5.0",
     "express": "^4.21.2",
+    "mongoose": "^8.15.0",
     "morgan": "^1.10.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  },
+  "engines": {
+    "node": ">=10.0.0"
   }
 }
