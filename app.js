@@ -7,9 +7,14 @@ const userRouter = require("./routes/userRouter");
 
 // 1) MIDDLEWARES
 const app = express();
-app.use(morgan("dev"));
-app.use(express.json());
 
+// console.log(process.env.NODE_ENV);
+if (process.env.NODE_ENV === "development") {
+  app.use(morgan("dev"));
+}
+
+app.use(express.json());
+app.use(express.static(`${__dirname}/public`));
 // app.use((request, response, next) => {
 //   console.log("Hello from the Middleware!🗃️");
 //   next();
