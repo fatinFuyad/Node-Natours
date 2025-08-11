@@ -1,11 +1,14 @@
 const dotenv = require("dotenv");
+const mongoose = require("mongoose");
 
 dotenv.config({ path: "./config.env" });
 
 const app = require("./app");
-const mongoose = require("mongoose");
 
-const database = process.env.DATABASE.replace("<db_password>", process.env.DATABASE_PASSWORD);
+const database = process.env.DATABASE.replace(
+  "<db_password>",
+  process.env.DATABASE_PASSWORD,
+);
 // console.log(process.env);
 // mongoose previous options
 //  {
@@ -14,7 +17,7 @@ const database = process.env.DATABASE.replace("<db_password>", process.env.DATAB
 // useCreateIndex: true,
 // useFindAndModify: false,
 // }
-mongoose.connect(database).then((connectionObj) => {
+mongoose.connect(database).then(() => {
   // console.log(connectionObj.connections);
   console.log("Database connection is successfull");
 });
