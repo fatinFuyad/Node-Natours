@@ -1,4 +1,5 @@
 const Tour = require("../models/toursModel");
+const APIFeatures = require("../utils/apiFeatures");
 
 exports.aliasTopTours = function (request, response, next) {
   request.query.limit = "5";
@@ -9,58 +10,14 @@ exports.aliasTopTours = function (request, response, next) {
 
 exports.getAllTours = async (request, response) => {
   try {
-    // 1) Filtering
-    const queryObj = { ...request.query };
-    const excluedFields = ["page", "limit", "sort", "fields"]; // not field
-    excluedFields.forEach((el) => delete queryObj[el]); // operator 'delete' removes fields of obj
+    // Tour.find() will create query object onto that we can call methods
+    const queryFeature = new APIFeatures(Tour.find(), request.query)
+      .filter()
+      .sort()
+      .limitFields()
+      .paginate();
 
-    // const tours = await Tour.find(queryObj); // returns promise
-    // const tours = await Tour.find().where("duration").equals(5).where("price").gte(497);
-
-    // 2) Advanced Filtering
-    // { difficulty: 'easy', duration: { $gte: 5 } } // filtering in mongoDB
-    // { difficulty: 'easy', duration: { gte: '5' } }// filter object from request
-
-    // lt gt lte gte
-    // we need to change these operators placing "$" before them. "\b" to match whole word.
-
-    let queryStr = JSON.stringify(queryObj);
-    queryStr = queryStr.replace(/\b(lt|gt|lte|gte)\b/g, (match) => `$${match}`);
-    // console.log(queryStr);
-
-    // if await used, then query executes instantly. So later remains no way of including sorting or filtering or features like this. Hence after adding all of the methods we can await later.
-    const query = Tour.find(JSON.parse(queryStr));
-
-    // Sorting: negative -query will be sorted as decending order
-    if (request.query.sort) {
-      const sortBy = request.query.sort.split(",").join(" ");
-      query.sort(sortBy);
-    } else {
-      query.sort("-ratingsAverage"); // making it default sort
-    }
-
-    // Limiting Fields
-    if (request.query.fields) {
-      const fields = request.query.fields.split(",").join(" ");
-      query.select(fields); // expects string like select("name duration price")
-    } else {
-      query.select("-__v");
-    }
-
-    // Pagination
-    const page = request.query.page * 1 || 1; // numbers in the query comes in string format
-    const limit = request.query.limit * 1 || 100;
-    const skip = (page - 1) * limit;
-
-    // page=3 1-10 page1, 11-20 page2, 21-30 page3 // on page 3 we need to skip 20 results
-
-    if (request.query.page) {
-      const numTours = await Tour.countDocuments();
-      if (skip >= numTours) throw new Error("This page does not exist!💥💥");
-    }
-    query.skip(skip).limit(limit);
-
-    const tours = await query;
+    const tours = await queryFeature.query;
     response.status(200).json({
       status: "success",
       results: tours.length,
@@ -135,6 +92,99 @@ exports.deleteTour = async (request, response) => {
     response.status(204).json({
       status: "success",
       data: null,
+    });
+  } catch (error) {
+    response.status(400).json({
+      status: "fail",
+      message: error + "💥💥",
+    });
+  }
+};
+
+// Adding Aggregation Pipeline
+exports.getToursStats = async function (request, response) {
+  try {
+    const stats = await Tour.aggregate([
+      { $match: { ratingsAverage: { $gte: 4.5 } } },
+      {
+        $group: {
+          // _id: null,
+          _id: { $toUpper: "$difficulty" },
+          numTours: { $sum: 1 },
+          numRatings: { $sum: "$ratingsQuantity" },
+          avgRatings: { $avg: "$ratingsAverage" },
+          avgPrice: { $avg: "$price" },
+          minPrice: { $min: "$price" },
+          maxPrice: { $max: "$price" },
+        },
+      },
+      {
+        $sort: {
+          _id: 1,
+          // avgPrice: 1,
+        },
+      },
+      {
+        $match: {
+          // _id: { $ne: "DIFFICULT" },
+        },
+      },
+    ]);
+
+    response.status(200).json({
+      status: "success",
+      data: { stats },
+    });
+  } catch (error) {
+    response.status(400).json({
+      status: "fail",
+      message: error + "💥💥",
+    });
+  }
+};
+
+exports.getToursPlan = async function (request, response) {
+  try {
+    const { year } = request.params; // 2021;
+
+    const tours = await Tour.aggregate([
+      { $unwind: "$startDates" },
+      {
+        $match: {
+          // we are matching from jan 1 to dec 31 of the same year
+          // $gte or $lte expects actual date string
+          startDates: {
+            $gte: new Date(`${year}-01-01`),
+            $lte: new Date(`${year}-12-31`),
+          },
+        },
+      },
+      {
+        $group: {
+          _id: { $month: "$startDates" }, // $month expects a date string not date object
+          numTours: { $sum: 1 }, // sums by 1 as docs go through the pipeline
+          tours: { $push: "$name" }, // making an arr[] of name fields
+        },
+      },
+      {
+        $addFields: {
+          month: "$_id",
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          // eliminates _id field when set to 0.
+          // if the field is set to 1, all other fields will be removed except this one
+        },
+      },
+      { $sort: { numTours: -1 } },
+      // { $limit: 6 },
+    ]);
+
+    response.status(200).json({
+      status: "success",
+      data: { tours },
     });
   } catch (error) {
     response.status(400).json({
