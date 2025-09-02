@@ -71,7 +71,7 @@ exports.updateTour = async (request, response) => {
   try {
     const tour = await Tour.findByIdAndUpdate(request.params.id, request.body, {
       new: true,
-      runValidators: true,
+      runValidators: true, // this validators run from schema while updating
     });
     response.status(200).json({
       status: "success",
@@ -124,12 +124,12 @@ exports.getToursStats = async function (request, response) {
           // avgPrice: 1,
         },
       },
-      {
-        $match: {
-          // _id: { $ne: "DIFFICULT" },
-        },
-      },
     ]);
+    // {
+    //   $match: {
+    //     _id: { $ne: "DIFFICULT" },
+    //   },
+    // },
 
     response.status(200).json({
       status: "success",
