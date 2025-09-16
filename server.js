@@ -9,6 +9,7 @@ const database = process.env.DATABASE.replace(
   "<db_password>",
   process.env.DATABASE_PASSWORD,
 );
+
 // console.log(process.env);
 // mongoose previous options
 //  {
@@ -17,6 +18,7 @@ const database = process.env.DATABASE.replace(
 // useCreateIndex: true,
 // useFindAndModify: false,
 // }
+
 mongoose.connect(database).then(() => {
   // console.log(connectionObj.connections);
   console.log("Database connection is successfull");

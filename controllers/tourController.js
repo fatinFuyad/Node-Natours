@@ -119,6 +119,16 @@ exports.getToursStats = async function (request, response) {
         },
       },
       {
+        $addFields: {
+          avgRatings: {
+            $round: ["$avgRatings", 2],
+          },
+          avgPrice: {
+            $trunc: "$avgPrice",
+          },
+        },
+      },
+      {
         $sort: {
           _id: 1,
           // avgPrice: 1,
@@ -143,6 +153,7 @@ exports.getToursStats = async function (request, response) {
   }
 };
 
+// to find the busiest month where much more tours are booked
 exports.getToursPlan = async function (request, response) {
   try {
     const { year } = request.params; // 2021;
@@ -178,7 +189,7 @@ exports.getToursPlan = async function (request, response) {
           // if the field is set to 1, all other fields will be removed except this one
         },
       },
-      { $sort: { numTours: -1 } },
+      { $sort: { numTours: -1, month: 1 } },
       // { $limit: 6 },
     ]);
 

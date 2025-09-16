@@ -1,6 +1,6 @@
 {
   "extends": [
-    // "airbnb",
+    "airbnb",
     // "prettier",
     "plugin:node/recommended"
   ],
@@ -14,6 +14,7 @@
     //     "endOfLine": "auto"
     //   }
     // ],
+    "linebreak-style": "off",
     "quotes": "off",
     "spaced-comment": "off",
     "no-console": "warn",

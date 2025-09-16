@@ -26,5 +26,18 @@ app.use((request, response, next) => {
 
 app.use("/api/v1/tours", tourRouter);
 app.use("/api/v1/users", userRouter);
+app.all("*", (req, res) => {
+  res.status(404).json({
+    status: "fail",
+    message: `Can't find requested url: ${req.originalUrl} 💥`,
+  });
+});
 
 module.exports = app;
+
+/**
+ * The req.query property is no longer a writable property and is instead a getter.
+ * The default query parser has been changed from “extended” to “simple”.
+ * app.set('query parser',"extended")
+ * For aliasRouting modify the req.url and that will be reflected on the req.query
+ */

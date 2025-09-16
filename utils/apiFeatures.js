@@ -1,9 +1,24 @@
+/**
+ * @description APIFeature class for creating and handling -
+ * fitlering, sorting, limiting, pagination and so on
+ * @class
+ * @property {object} query - query object for handling database query operations
+ * @property {object} queryString - query object received from the request.query
+ */
 class APIFeatures {
+  /**
+   * @constructor
+   * @param {object} query - a query object created from schemaModel
+   * @param {object} queryString - a query object received from request.query
+   * @returns this (all of it's class methods)
+   * @author fatinfuyad
+   */
   constructor(query, queryString) {
     this.query = query;
     this.queryString = queryString;
   }
 
+  /** @returns {this}*/
   filter() {
     // 1) Filtering
     const queryObj = { ...this.queryString };
@@ -23,7 +38,9 @@ class APIFeatures {
     let queryStr = JSON.stringify(queryObj);
     queryStr = queryStr.replace(/\b(lt|gt|lte|gte)\b/g, (match) => `$${match}`);
 
-    // if await used, then query executes instantly. So later remains no way of including sorting or filtering or features like this. Hence after adding all of the methods we can await later.
+    /* if await used, then query executes instantly.
+    So later remains no way of including sorting or filtering or features like this.
+    Hence after adding all of the methods we can await later.*/
     // const query = Tour.find(JSON.parse(queryStr));
     this.query.find(JSON.parse(queryStr));
     return this;

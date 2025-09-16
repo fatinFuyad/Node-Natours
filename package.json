@@ -5,12 +5,20 @@
   "main": "app.js",
   "scripts": {
     "start": "nodemon server.js",
-    "build": "Set NODE_ENV=production && nodemon server.js"
+    "build": "Set NODE_ENV=production && nodemon server.js",
+    "debug": "ndb server.js"
   },
   "author": "fatin fuyad",
   "license": "ISC",
   "dependencies": {
     "dotenv": "^16.5.0",
+    "express": "^4.21.2",
+    "mongoose": "^8.15.0",
+    "morgan": "^1.10.0",
+    "slugify": "^1.6.6",
+    "validator": "^13.15.15"
+  },
+  "devDependencies": {
     "eslint": "^8.57.1",
     "eslint-config-airbnb": "^19.0.4",
     "eslint-config-prettier": "^10.1.8",
@@ -19,17 +27,10 @@
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^5.5.4",
     "eslint-plugin-react": "^7.37.5",
-    "express": "^4.21.2",
-    "mongoose": "^8.15.0",
-    "morgan": "^1.10.0",
-    "prettier": "^3.6.2",
-    "slugify": "^1.6.6",
-    "validator": "^13.15.15"
-  },
-  "devDependencies": {
-    "nodemon": "^3.1.10"
+    "nodemon": "^3.1.10",
+    "prettier": "^3.6.2"
   },
   "engines": {
-    "node": ">=10.0.0"
+    "node": ">=18.0.0"
   }
 }

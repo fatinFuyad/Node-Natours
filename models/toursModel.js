@@ -2,8 +2,10 @@ const mongoose = require("mongoose");
 const slugify = require("slugify");
 const validator = require("validator");
 
-// In Mongoose, a schema is used to define the structure of documents within a MongoDB collection. It specifies the fields, their data types, default values, and validation rules.
-// Anything that is present in the posted request data but not in the Schema will not be included in the database collection.
+// In Mongoose, a schema is used to define the structure of documents within a MongoDB collection.
+// It specifies the fields, their data types, default values, and validation rules.
+// Anything that is present in the posted request data-
+// but not in the Schema will not be included in the database collection.
 const tourSchema = new mongoose.Schema(
   {
     name: {
@@ -92,16 +94,28 @@ const tourSchema = new mongoose.Schema(
   {
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
-    // Documents have a toObject method which converts the mongoose document into a plain JavaScript object. This method accepts a few options. Instead of applying these options on a per-document basis, we may declare the options at the schema level and have them applied to all of the schema's documents by default.
+    /* Documents have a toObject method which converts the mongoose document into a plain
+     JavaScript object. This method accepts a few options.
+     Instead of applying these options on a per-document basis,
+     we may declare the options at the schema level
+     and have them applied to all of the schema's documents by default.*/
   },
 );
 
-// adding virtual fields to the schema
+// Adding Virtual fields to the Schema
 tourSchema.virtual("durationWeeks").get(function () {
   return this.duration / 7;
 });
 
-// adding document middleware, pre and post for create() and save()
+/**
+ * this in document middleware points to the document object
+ * this in query middleware points to the query object
+ * this in aggregate middleware points to the aggregate object and
+ * this.pipeline() is the arr of stage objects.
+ */
+
+// Document Middleware
+// pre and post for create() and save()
 // any of the middleware will be stuck if not called next()
 // but doc will be saved even though
 tourSchema.pre("save", function (next) {
@@ -119,10 +133,10 @@ tourSchema.pre("save", function (next) {
 //   next();
 // });
 
-////// adding query middleware
+// Query Middleware
 // tourSchema.pre("find", function (next) {
+// using RegExp to match all find occurrance
 tourSchema.pre(/^find/, function (next) {
-  // using RegExp to match all find occurrance
   this.find({ secretTour: { $ne: true } });
   this.start = Date.now();
   next();
@@ -134,15 +148,15 @@ tourSchema.post(/^find/, function (docs, next) {
   next();
 });
 
-//// adding aggregate middleware
+// Aggregate Middleware
 tourSchema.pre("aggregate", function (next) {
   this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
-  console.log(this.pipeline());
+  // console.log(this.pipeline());
   next();
 });
 
 // the model name and variable should be as convention in capitalize
-// it's now like a class defination and it's instances will have access of some methods
+// it's now like a class defination and it's instances will have access to methods
 const Tour = mongoose.model("Tour", tourSchema);
 module.exports = Tour;
 
