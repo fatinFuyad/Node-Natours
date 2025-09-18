@@ -1,19 +1,19 @@
 {
   "extends": [
     "airbnb",
-    // "prettier",
+    "prettier",
     "plugin:node/recommended"
   ],
-  // "plugins": [
-  //   "prettier"
-  // ],
+  "plugins": [
+    "prettier"
+  ],
   "rules": {
-    // "prettier/prettier": [
-    //   "off",
-    //   {
-    //     "endOfLine": "auto"
-    //   }
-    // ],
+    "prettier/prettier": [
+      "off",
+      {
+        "endOfLine": "auto"
+      }
+    ],
     "linebreak-style": "off",
     "quotes": "off",
     "spaced-comment": "off",
@@ -28,7 +28,6 @@
     "class-methods-use-this": "off",
     "prefer-object-spread": "off",
     "radix": "off",
-    "comma-dangle": "off",
     "prefer-destructuring": [
       "error",
       {
@@ -41,7 +40,6 @@
       {
         "argsIgnorePattern": "req|res|next|val"
       }
-    ],
-    "prefer-template": "off"
+    ]
   }
 }
