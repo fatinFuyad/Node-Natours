@@ -13,13 +13,15 @@ const signToken = function (id) {
 
 exports.signup = catchAsync(async (req, res, next) => {
   // ⚠️⚠️ prevent users playing admin role
+  // creating users directly from req.body any of the user can register role as admin
+  // to prevent it, create admin manually set the role to admin from mongodb
   // const newUser = await User.create(req.body);
   const newUser = await User.create({
     name: req.body.name,
     email: req.body.email,
     password: req.body.password,
     passwordConfirm: req.body.passwordConfirm,
-    passwordChangedAt: req.body.passwordChangedAt,
+    // passwordChangedAt: req.body.passwordChangedAt,
   });
   const token = signToken(newUser._id);
   res.status(201).json({
@@ -98,3 +100,16 @@ exports.protect = catchAsync(async (req, res, next) => {
   req.user = currentUser;
   next();
 });
+
+exports.restrictTo = function (...roles) {
+  return (req, res, next) => {
+    // roles:['admin','lead-guide']
+    if (!roles.includes(req.user.role)) {
+      return next(
+        new AppError("You do not have permission to perform this action!", 403)
+        // forbidden
+      );
+    }
+    next();
+  };
+};
