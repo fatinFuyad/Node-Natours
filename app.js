@@ -9,7 +9,7 @@ const globalErrorHandler = require("./controllers/errorController");
 // 1) MIDDLEWARES
 const app = express();
 
-console.log(process.env.NODE_ENV + 22);
+// console.log(process.env.NODE_ENV);
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
 }
@@ -23,6 +23,7 @@ app.use(express.static(`${__dirname}/public`));
 
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();
+  // console.log(req.headers);
   next();
 });
 

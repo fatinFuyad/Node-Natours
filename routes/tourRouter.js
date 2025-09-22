@@ -10,6 +10,7 @@ const {
   getToursStats,
   getToursPlan,
 } = require("../controllers/tourController");
+const { protect } = require("../controllers/authController");
 
 const router = express.Router();
 // router.param("id", checkId); // checkId is a middleware that checks if the id is valid
@@ -17,7 +18,8 @@ const router = express.Router();
 router.route("/tours-stats").get(getToursStats);
 router.route("/toursPlan/:year").get(getToursPlan);
 router.route("/top-5-tours").get(aliasTopTours, getAllTours); // alias routing
-router.route("/").get(getAllTours).post(createTour);
+
+router.route("/").get(protect, getAllTours).post(createTour);
 router.route("/:id").get(getTour).patch(updateTour).delete(deleteTour);
 
 module.exports = router;
