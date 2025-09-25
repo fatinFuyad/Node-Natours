@@ -1,8 +1,8 @@
-const mongoose = require("mongoose");
-const validator = require("validator");
-
 // eslint-disable-next-line
 const bcrypt = require("bcryptjs");
+const crypto = require("crypto");
+const mongoose = require("mongoose");
+const validator = require("validator");
 
 const usersSchema = new mongoose.Schema({
   name: {
@@ -47,6 +47,8 @@ const usersSchema = new mongoose.Schema({
     },
   },
   passwordChangedAt: Date,
+  passwordResetExpires: Date,
+  passwordResetToken: String,
 });
 
 // Encrypting passwords with bcrypt
@@ -56,6 +58,12 @@ usersSchema.pre("save", async function (next) {
 
   // delete passwordConfirm field as it's not necessary to save in database;
   this.passwordConfirm = undefined;
+  next();
+});
+
+usersSchema.pre("save", function (next) {
+  if (!this.isModified(this.password) || this.isNew) return next();
+  this.passwordChangedAt = Date.now() - 1000; // sometimes tokens are bit delayed while saved
   next();
 });
 
@@ -81,6 +89,19 @@ usersSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
     return JWTTimestamp < changedTimestamp; // checks if password was changed after the token had already provided
   }
   return false;
+};
+
+usersSchema.methods.createResetToken = function () {
+  const resetToken = crypto.randomBytes(32).toString("hex");
+
+  this.passwordResetToken = crypto
+    .createHash("sha256")
+    .update(resetToken)
+    .digest("hex");
+
+  console.log({ resetToken }, this.passwordResetToken);
+  this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
+  return resetToken;
 };
 
 const User = mongoose.model("User", usersSchema);
