@@ -28,6 +28,14 @@
     "class-methods-use-this": "off",
     "prefer-object-spread": "off",
     "radix": "off",
+    "import/no-extraneous-dependencies": [
+      "off",
+      {
+        "devDependencies": false,
+        "optionalDependencies": false,
+        "peerDependencies": false
+      }
+    ],
     "prefer-destructuring": [
       "error",
       {

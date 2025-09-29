@@ -99,7 +99,7 @@ const tourSchema = new mongoose.Schema(
      Instead of applying these options on a per-document basis,
      we may declare the options at the schema level
      and have them applied to all of the schema's documents by default.*/
-  },
+  }
 );
 
 // Adding Virtual fields to the Schema

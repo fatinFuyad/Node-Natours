@@ -39,7 +39,7 @@ const usersSchema = new mongoose.Schema({
     type: String,
     required: [true, "Please confirm your password"],
     validate: {
-      // it only works for create() and save() // not on update
+      // it only works for methods create() and save() // not on update
       validator: function (el) {
         return el === this.password; // only returns true or false for validation
       },
@@ -49,6 +49,11 @@ const usersSchema = new mongoose.Schema({
   passwordChangedAt: Date,
   passwordResetExpires: Date,
   passwordResetToken: String,
+  active: {
+    type: Boolean,
+    default: true,
+    select: false,
+  },
 });
 
 // Encrypting passwords with bcrypt
@@ -62,8 +67,16 @@ usersSchema.pre("save", async function (next) {
 });
 
 usersSchema.pre("save", function (next) {
-  if (!this.isModified(this.password) || this.isNew) return next();
+  // when new user is created isModified() is true and isNew is true
+  // but when isModified() is true and isNew is false
+  if (!this.isModified("password") || this.isNew) return next();
   this.passwordChangedAt = Date.now() - 1000; // sometimes tokens are bit delayed while saved
+
+  next();
+});
+
+usersSchema.pre(/^find/, function (next) {
+  this.find({ active: { $ne: false } }); // filter out inactive user
   next();
 });
 
@@ -99,7 +112,7 @@ usersSchema.methods.createResetToken = function () {
     .update(resetToken)
     .digest("hex");
 
-  console.log({ resetToken }, this.passwordResetToken);
+  // console.log({ resetToken }, this.passwordResetToken);
   this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
   return resetToken;
 };

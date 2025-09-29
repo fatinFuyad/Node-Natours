@@ -1,5 +1,10 @@
 const express = require("express");
 const morgan = require("morgan");
+const rateLimit = require("express-rate-limit");
+const helmet = require("helmet");
+const mongoSanitize = require("express-mongo-sanitize");
+const xss = require("xss-clean");
+const hpp = require("hpp");
 
 const tourRouter = require("./routes/tourRouter");
 const userRouter = require("./routes/userRouter");
@@ -8,14 +13,45 @@ const globalErrorHandler = require("./controllers/errorController");
 
 // 1) MIDDLEWARES
 const app = express();
+app.use(helmet()); // set security headers
 
 // console.log(process.env.NODE_ENV);
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
 }
 
-app.use(express.json());
+// limit requests from same api
+const limiter = rateLimit({
+  max: 100, // allowed max req
+  windowMs: 60 * 60 * 100,
+  message: "Too many requests from this IP! Please try again later in an hour.",
+});
+
+app.use("/api", limiter); // the route specified will be applied on;
+
+// body parser, reads data from body and parses req.query
+app.use(express.json({ limit: "10kb" })); // Controls the maximum request body size
+// Data sanitization against NoSQL query injection
+app.use(mongoSanitize());
+// Data sanitization against XSS
+app.use(xss());
+
+// Prevent parameter pollution
+app.use(
+  hpp({
+    whitelist: [
+      "price",
+      "ratingsAverage",
+      "ratingsQuantity",
+      "duration",
+      "maxGroupSize",
+      "difficulty",
+    ],
+  })
+);
+
 app.use(express.static(`${__dirname}/public`));
+
 // app.use((req, res, next) => {
 //   console.log("Hello from the Middleware!🗃️");
 //   next();
@@ -64,4 +100,10 @@ module.exports = app;
  * For aliasRouting modify the req.url and that will be reflected on the req.query
  * when two response is sent at the same time ⬇️
  * Error [ERR_HTTP_HEADERS_SENT]:Cannot set headers after they are sent to the client ❌
+ */
+
+/**
+ * express.json() is used to handle and parse incoming JSON data.
+ * This middleware is essential for working with JSON payloads in requests, such as those sent via POST, PUT, or PATCH methods.
+ * Without it, Express cannot automatically parse JSON data, and the req.body will remain undefined.
  */
