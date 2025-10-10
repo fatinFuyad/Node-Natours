@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const slugify = require("slugify");
 const validator = require("validator");
+// const User = require("./usersModel");
 
 // In Mongoose, a schema is used to define the structure of documents within a MongoDB collection.
 // It specifies the fields, their data types, default values, and validation rules.
@@ -62,8 +63,8 @@ const tourSchema = new mongoose.Schema(
       type: Number,
       validate: {
         validator: function (val) {
-          return val > this.price;
           // caviet: this only points to current doc on NEW document creation
+          return val < this.price;
         },
         message:
           "Tour discount must be ({VALUE}) less than or equal to it's regular price",
@@ -90,8 +91,34 @@ const tourSchema = new mongoose.Schema(
       select: false, // prevents from exposing this field / better for sensitive data
     },
     startDates: [Date],
+    startLocation: {
+      // GeoJSON
+      type: {
+        type: String,
+        default: "Point",
+        enum: ["Point"],
+      },
+      coordinates: [Number],
+      address: String,
+      description: String,
+    },
+    locations: [
+      {
+        type: {
+          type: String,
+          default: "Point",
+          enum: ["Point"],
+        },
+        coordinates: [Number],
+        address: String,
+        description: String,
+        day: Number,
+      },
+    ],
+    guides: [{ type: mongoose.Schema.ObjectId, ref: "User" }],
   },
   {
+    id: false, // prevents sending additional id. Hence doc.id // undefined
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
     /* Documents have a toObject method which converts the mongoose document into a plain
@@ -105,6 +132,13 @@ const tourSchema = new mongoose.Schema(
 // Adding Virtual fields to the Schema
 tourSchema.virtual("durationWeeks").get(function () {
   return this.duration / 7;
+});
+
+// Virtual Populate
+tourSchema.virtual("reviews", {
+  ref: "Review",
+  foreignField: "tour",
+  localField: "_id",
 });
 
 /**
@@ -122,6 +156,14 @@ tourSchema.pre("save", function (next) {
   this.slug = slugify(this.name, { replacement: "_", lower: true });
   next();
 });
+
+// tourSchema.pre("save", async function (next) {
+//   // this.guides = await User.find({ _id: { $in: this.guides } }) // $in takes an arr
+//   /** holds an arr of Query promises, generated from map */
+//   const guidePromises = this.guides.map((id) => User.findById(id));
+//   this.guides = await Promise.all(guidePromises);
+//   next();
+// });
 
 // tourSchema.pre("save", function (next) {
 //   console.log("Doc will be saved!");
@@ -148,6 +190,14 @@ tourSchema.post(/^find/, function (docs, next) {
   next();
 });
 
+tourSchema.pre(/^find/, function (next) {
+  this.populate({
+    path: "guides",
+    select: "-__v -passwordChangedAt",
+  });
+  next();
+});
+
 // Aggregate Middleware
 tourSchema.pre("aggregate", function (next) {
   this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
@@ -166,8 +216,7 @@ module.exports = Tour;
 // testTour is an instance of the Tour schema model
 // const testTour = new Tour({
 //   name: "The Forest Hiker",
-//   ratings: 4.7,
-//   price: 697,
+//   ratings: 4.7, price: 697,
 // });
 
 // after saving it will send the data to the database and send a a promise

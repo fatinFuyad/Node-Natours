@@ -38,7 +38,7 @@ exports.updateMe = catchAsync(async (req, res, next) => {
 
   // Filter out unwanted field names that are not allowed to be updated
   const filteredBody = filteredObj(req.body, "name", "email");
-  const updatedUser = await User.findByIdAndUpdate(req.user.id, filteredBody, {
+  const updatedUser = await User.findByIdAndUpdate(req.user._id, filteredBody, {
     new: true, // for returning updated user
     runValidators: true,
   });
@@ -52,7 +52,7 @@ exports.updateMe = catchAsync(async (req, res, next) => {
 
 exports.deleteMe = catchAsync(async (req, res) => {
   // The General Data Protection Regulation (GDPR) aims to enhance individuals' control over their personal data and unify data protection laws.
-  await User.findByIdAndUpdate(req.user.id, { active: false });
+  await User.findByIdAndUpdate(req.user._id, { active: false });
 
   res.status(204).json({
     status: "success",

@@ -64,7 +64,7 @@ class APIFeatures {
       const fields = this.queryString.fields.split(",").join(" ");
       this.query.select(fields); // expects string like select("name duration price")
     } else {
-      this.query.select("-__v -description");
+      this.query.select("-__v");
     }
 
     return this;
