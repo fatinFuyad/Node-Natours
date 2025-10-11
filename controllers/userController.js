@@ -1,6 +1,7 @@
 const User = require("../models/usersModel");
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
+const factory = require("./handlerFactory");
 
 const filteredObj = (obj, ...allowedFields) => {
   const newObj = {};
@@ -11,15 +12,6 @@ const filteredObj = (obj, ...allowedFields) => {
   });
   return newObj;
 };
-
-exports.getAllUsers = catchAsync(async (req, res) => {
-  const users = await User.find();
-  res.status(200).json({
-    status: "success",
-    results: users.length,
-    data: { users },
-  });
-});
 
 exports.updateMe = catchAsync(async (req, res, next) => {
   // 1) Create error if user POSTs password
@@ -60,30 +52,16 @@ exports.deleteMe = catchAsync(async (req, res) => {
   });
 });
 
-exports.getUser = (req, res) => {
-  res.status(500).json({
-    status: "Internal Server Error!💥💥",
-    message: "This route has not been defined yet",
-  });
-};
-
 exports.createUser = (req, res) => {
   res.status(500).json({
     status: "Internal Server Error!💥💥",
-    message: "This route has not been defined yet",
+    message: "This route is not defined! Please use /signup",
   });
 };
 
-exports.updateUser = (req, res) => {
-  res.status(500).json({
-    status: "Internal Server Error!💥💥",
-    message: "This route has not been defined yet",
-  });
-};
+exports.getAllUsers = factory.getAll(User);
+exports.getUser = factory.getOne(User);
 
-exports.deleteUser = (req, res) => {
-  res.status(500).json({
-    status: "Internal Server Error!💥💥",
-    message: "This route has not been defined yet",
-  });
-};
+// passwords shouldn't be updated by this method
+exports.updateUser = factory.updateOne(User);
+exports.deleteUser = factory.deleteOne(User);

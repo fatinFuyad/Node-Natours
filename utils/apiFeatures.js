@@ -61,7 +61,10 @@ class APIFeatures {
   limitFields() {
     // Limiting Fields
     if (this.queryString.fields) {
-      const fields = this.queryString.fields.split(",").join(" ");
+      const fields = this.queryString.fields
+        .split(",")
+        .join(" ")
+        .replace(/password/g, ""); // to not able to select sensitive fields
       this.query.select(fields); // expects string like select("name duration price")
     } else {
       this.query.select("-__v");

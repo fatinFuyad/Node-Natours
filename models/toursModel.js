@@ -208,6 +208,7 @@ tourSchema.pre("aggregate", function (next) {
 // the model name and variable should be as convention in capitalize
 // it's now like a class defination and it's instances will have access to methods
 const Tour = mongoose.model("Tour", tourSchema);
+
 module.exports = Tour;
 
 //

@@ -65,19 +65,29 @@ module.exports = function globalErrorHandler(err, req, res, next) {
   if (process.env.NODE_ENV === "development") {
     sendErrorDev(err, res);
   } else if (process.env.NODE_ENV === "production") {
+    // since modifying parameter is not ideal
     let error = { ...err }; // copies properties and loses conncetion to the prototype
-    if (error.name === "CastError") error = handleCastErrorDB(error); // modifying parameter is not ideal
+    error = Object.create(err); // connect to prototype;
+
+    // console.log("err", err.name);
+    // console.log("error", error.name);
+    // console.log(error.status, error.statusCode, error.message);
+
+    if (error.name === "CastError") error = handleCastErrorDB(error);
 
     if (error.code === 11000) error = handleDuplicateFieldDB(error);
     // we don't get error.name in error object in console.**
     // error.name === "ValidationError"
 
-    if (error._message === "Validation failed")
+    // if (error._message === "Validation failed")
+    if (error.name === "ValidationError")
       error = handleValidationErrorDB(error);
     // console.log(error.name); // undefined as it has no name property
 
     if (error.name === "JsonWebTokenError") error = handleJWTError();
     if (error.name === "TokenExpiredError") error = handleJWTExpiredError();
+    err.writer = "ME";
+    error.author = "fatinFuyad";
 
     sendErrorProd(error, res);
   }
