@@ -9,6 +9,8 @@ const {
   aliasTopTours,
   getToursStats,
   getToursPlan,
+  getToursWithin,
+  getTourDistances,
 } = require("../controllers/tourController");
 const { protect, restrictTo } = require("../controllers/authController");
 
@@ -18,14 +20,28 @@ const router = express.Router(); // router is also a middleware
 router.use("/:tourId/reviews", reveiwRouter); // merged two router for specified path
 
 router.route("/tours-stats").get(getToursStats);
-router.route("/toursPlan/:year").get(getToursPlan);
+router
+  .route("/toursPlan/:year")
+  .get(protect, restrictTo("admin", "lead-guide", "guide"), getToursPlan);
 router.route("/top-5-tours").get(aliasTopTours, getAllTours); // alias routing
 
-router.route("/").get(protect, getAllTours).post(createTour);
+// URL Form: /tours-within/233/center/40,-23/unit/mi
+// Query String Form: /tours-within?distance=233&center=40,-23&unit=mi
+router
+  .route("/tours-within/:distance/center/:latlng/unit/:unit")
+  .get(getToursWithin);
+
+router.route("/distance/:latlng/unit/:unit").get(getTourDistances);
+
+// exposing getAllTours as for api req from any site where api is integreated;
+router
+  .route("/")
+  .get(getAllTours)
+  .post(protect, restrictTo("admin", "lead-guide"), createTour);
 router
   .route("/:id")
   .get(getTour)
-  .patch(updateTour)
+  .patch(protect, restrictTo("admin", "lead-guide"), updateTour)
   .delete(protect, restrictTo("admin", "lead-guide"), deleteTour);
 
 // POST Review: /tours/234329sde2/reivews

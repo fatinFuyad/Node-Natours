@@ -13,6 +13,14 @@ const filteredObj = (obj, ...allowedFields) => {
   return newObj;
 };
 
+// getMe is a middleware used to add the user _id to params;
+// which is needed in factory.getOne() for finding specific user;
+
+exports.getMe = (req, res, next) => {
+  req.params.id = req.user._id;
+  next();
+};
+
 exports.updateMe = catchAsync(async (req, res, next) => {
   // 1) Create error if user POSTs password
   if (req.body.password || req.body.passwordConfirm)

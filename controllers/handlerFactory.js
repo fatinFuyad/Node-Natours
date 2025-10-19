@@ -51,18 +51,16 @@ exports.updateOne = (Model) =>
 exports.createOne = (Model) =>
   catchAsync(async (req, res, next) => {
     const doc = await Model.create(req.body); // it will return a promise
+    const modelName = Model.modelName.toLowerCase();
 
     if (!doc) {
       return next(
-        new AppError(
-          `Invalid ID or the ${Model.modelName.toLowerCase()} is not found`,
-          404
-        )
+        new AppError(`Invalid ID or the ${modelName} is not found`, 404)
       );
     }
     res.status(200).json({
       status: "success",
-      data: { doc },
+      data: { [modelName]: doc },
     });
   });
 
@@ -71,20 +69,17 @@ exports.getOne = (Model, popOptions) =>
     const query = Model.findById(req.params.id);
     if (popOptions) query.populate(popOptions);
     const doc = await query;
-
+    const modelName = Model.modelName.toLowerCase();
     if (!doc) {
       // it's important to return otherwise below response will be delivered
       return next(
-        new AppError(
-          `Invalid ID or the ${Model.modelName.toLowerCase()} is not found`,
-          404
-        )
+        new AppError(`Invalid ID or the ${modelName} is not found`, 404)
       );
     }
     res.status(200).json({
       status: "success",
       requestedAt: req.requestTime,
-      data: { doc },
+      data: { [modelName]: doc },
     });
   });
 
@@ -101,7 +96,7 @@ exports.getAll = (Model) =>
       .limitFields()
       .paginate();
 
-    const docs = await queryFeature.query;
+    const docs = await queryFeature.query; //.explain() /to get all kinds query details
     const collectionName = Model.collection.name;
 
     res.status(200).json({

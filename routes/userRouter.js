@@ -7,6 +7,7 @@ const {
   deleteUser,
   updateMe,
   deleteMe,
+  getMe,
 } = require("../controllers/userController");
 const {
   signup,
@@ -15,21 +16,28 @@ const {
   resetPassword,
   updatePassword,
   protect,
+  restrictTo,
 } = require("../controllers/authController");
 
 const router = express.Router();
 
-// exclusive router for just creating users / no other request is sent on this route;
+// exclusive router for performing particular tasks.
+// no other request is sent on this route;
 router.post("/signup", signup);
 router.post("/login", login);
-
 router.post("/forgotPassword", forgotPassword);
 router.patch("/resetPassword/:token", resetPassword);
-router.patch("/updateMyPassword", protect, updatePassword);
 
-router.patch("/updateMe", protect, updateMe);
-router.delete("/deleteMe", protect, deleteMe);
+// PROTECT all routes after it, as middlewares run sequencially
+// all of the below route handers won't work until user is logged in
+router.use(protect);
+router.patch("/updateMyPassword", updatePassword);
 
+router.get("/me", getMe, getUser);
+router.patch("/updateMe", updateMe);
+router.delete("/deleteMe", deleteMe);
+
+router.use(restrictTo("admin")); // to restrict underneath actions to only admin
 router.route("/").get(getAllUsers);
 router.route("/:id").get(getUser).patch(updateUser).delete(deleteUser);
 

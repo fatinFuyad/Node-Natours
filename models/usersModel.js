@@ -9,8 +9,8 @@ const usersSchema = new mongoose.Schema(
     name: {
       type: String,
       required: [true, "A user must have a name"],
-      minlength: [2, "Username should be more or atleast 2 characters"],
-      maxlength: [35, "Username should be less than or equal 35 characters"],
+      minLength: [2, "Username should be more or atleast 2 characters"],
+      maxLength: [35, "Username should be less than or equal 35 characters"],
     },
     email: {
       type: String,
@@ -32,8 +32,8 @@ const usersSchema = new mongoose.Schema(
     password: {
       type: String,
       required: [true, "User should "],
-      minlength: [8, "Password should be at least 8 characters long"],
-      maxlength: [24, "Password should be less than 24 characters"],
+      minLength: [8, "Password should be at least 8 characters long"],
+      maxLength: [24, "Password should be less than 24 characters"],
       select: false,
     },
     passwordConfirm: {

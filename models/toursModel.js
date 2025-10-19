@@ -14,8 +14,8 @@ const tourSchema = new mongoose.Schema(
       required: [true, "A tour must have a name!"],
       unique: true,
       trim: true,
-      maxlength: [45, "Tour name can not be greater than 45 characters long"],
-      minlength: [10, "Tour name can not be less than 10 characters long"],
+      maxLength: [45, "Tour name can not be greater than 45 characters long"],
+      minLength: [10, "Tour name can not be less than 10 characters long"],
       validate: {
         validator: function (val) {
           return validator.isAlpha(val, ["en-US"], { ignore: " " });
@@ -50,6 +50,8 @@ const tourSchema = new mongoose.Schema(
       default: 4.5,
       max: [5, "Ratings of tour should be equal or less than 5"],
       min: [1, "Ratings of tour should be greater than or equal 1"],
+      // runs callback each time ratingsAverage is changed
+      set: (val) => Math.round(val * 100) / 100,
     },
     ratingsQuantity: {
       type: Number,
@@ -129,6 +131,13 @@ const tourSchema = new mongoose.Schema(
   }
 );
 
+// set index for query performance; 1=ascending, -1=descending
+tourSchema.index({ price: 1, ratingsAverage: -1 });
+tourSchema.index({ slug: 1 });
+
+// 2dsphere indexes support geospatial queries on an earth-like sphere
+tourSchema.index({ startLocation: "2dsphere" }); // required for aggr $geoNear
+
 // Adding Virtual fields to the Schema
 tourSchema.virtual("durationWeeks").get(function () {
   return this.duration / 7;
@@ -200,8 +209,13 @@ tourSchema.pre(/^find/, function (next) {
 
 // Aggregate Middleware
 tourSchema.pre("aggregate", function (next) {
-  this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
-  // console.log(this.pipeline());
+  const hasGeoNear = this.pipeline().find(
+    (stage) => Object.keys(stage)[0] === "$geoNear"
+  );
+  if (!hasGeoNear) {
+    this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
+  }
+  console.log(this.pipeline());
   next();
 });
 
